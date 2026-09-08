@@ -7,7 +7,7 @@ genai.configure(api_key=st.secrets["API_KEY"])
 st.set_page_config(page_title="The Tiebreaker", page_icon="⚖️")
 
 st.title("⚖️ The Tiebreaker")
-st.warning(f"🔍 Diagnostic: My API key has {len(st.secrets['API_KEY'])} characters and starts with {st.secrets['API_KEY'][:4]}")
+#st.warning(f"🔍 Diagnostic: My API key has {len(st.secrets['API_KEY'])} characters and starts with {st.secrets['API_KEY'][:4]}")
 st.markdown("Enter your dilemma and let AI break the tie with data-driven analysis.")
 
 # --- UI Inputs ---
