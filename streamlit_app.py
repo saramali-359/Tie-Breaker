@@ -1,22 +1,53 @@
 import streamlit as st
-import google.generativeai as genai
+from openai import OpenAI
 
-# 1. Configure the API key securely
-genai.configure(api_key=st.secrets["API_KEY"])
+# Initialize the OpenAI client securely using Streamlit Secrets
+client = OpenAI(api_key=st.secrets["API_KEY"])
 
-# 2. Set up the app interface
-st.title("My Google AI App")
-st.write("Running directly in the browser!")
+st.set_page_config(page_title="The Tiebreaker", page_icon="⚖️")
 
-# 3. Create a text input for the user
-user_prompt = st.text_input("Ask me anything:")
+st.title("⚖️ The Tiebreaker")
+st.markdown("Enter your dilemma and let AI break the tie with data-driven analysis.")
 
-# 4. Generate the response
-if st.button("Generate"):
-    if user_prompt:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        with st.spinner("Thinking..."):
-            response = model.generate_content(user_prompt)
-            st.write(response.text)
-    else:
-        st.warning("Please enter a prompt.")
+# --- UI Inputs ---
+with st.sidebar:
+    st.header("Decision Context")
+    decision = st.text_area("What decision are you facing?", placeholder="e.g., Moving to NYC vs. staying in Austin")
+    priorities = st.text_input("What are your top priorities?", placeholder="e.g., Cost of living, Career growth")
+    submit = st.button("Analyze Decision")
+
+if submit and decision:
+    with st.spinner("Processing your options..."):
+        # 1. Generate Pros & Cons
+        res_list = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": f"Create a detailed pros and cons list for: {decision}. Focus on these priorities: {priorities}."}]
+        )
+
+        # 2. Generate Comparison Table
+        res_table = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": f"Create a markdown comparison table for: {decision}. Include rows for {priorities}."}]
+        )
+
+        # 3. Generate SWOT Analysis
+        res_swot = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": f"Perform a SWOT analysis for: {decision}. Format it as Strengths, Weaknesses, Opportunities, and Threats."}]
+        )
+
+        # --- Display Results ---
+        tab1, tab2, tab3 = st.tabs(["Pros & Cons", "Comparison Table", "SWOT Analysis"])
+        
+        with tab1:
+            st.markdown(res_list.choices[0].message.content)
+        
+        with tab2:
+            st.markdown(res_table.choices[0].message.content)
+            
+        with tab3:
+            st.markdown(res_swot.choices[0].message.content)
+
+        st.success("Analysis complete! Which way are you leaning?")
+else:
+    st.info("Enter your dilemma in the sidebar to get started.")
