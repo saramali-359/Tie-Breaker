@@ -20,7 +20,7 @@ with st.sidebar:
 if submit and decision:
     with st.spinner("Processing your options..."):
         # Initialize the free-tier Gemini model
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # 1. Generate Pros & Cons
         res_list = model.generate_content(f"Create a detailed pros and cons list for: {decision}. Focus on these priorities: {priorities}.")
