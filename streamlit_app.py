@@ -1,8 +1,8 @@
 import streamlit as st
-from openai import OpenAI
+import google.generativeai as genai
 
-# Initialize the OpenAI client securely using Streamlit Secrets
-client = OpenAI(api_key=st.secrets["API_KEY"])
+# Initialize the Google Gemini client securely using Streamlit Secrets
+genai.configure(api_key=st.secrets["API_KEY"])
 
 st.set_page_config(page_title="The Tiebreaker", page_icon="⚖️")
 
@@ -18,35 +18,29 @@ with st.sidebar:
 
 if submit and decision:
     with st.spinner("Processing your options..."):
+        # Initialize the free-tier Gemini model
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
         # 1. Generate Pros & Cons
-        res_list = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": f"Create a detailed pros and cons list for: {decision}. Focus on these priorities: {priorities}."}]
-        )
+        res_list = model.generate_content(f"Create a detailed pros and cons list for: {decision}. Focus on these priorities: {priorities}.")
 
         # 2. Generate Comparison Table
-        res_table = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": f"Create a markdown comparison table for: {decision}. Include rows for {priorities}."}]
-        )
+        res_table = model.generate_content(f"Create a markdown comparison table for: {decision}. Include rows for {priorities}.")
 
         # 3. Generate SWOT Analysis
-        res_swot = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": f"Perform a SWOT analysis for: {decision}. Format it as Strengths, Weaknesses, Opportunities, and Threats."}]
-        )
+        res_swot = model.generate_content(f"Perform a SWOT analysis for: {decision}. Format it as Strengths, Weaknesses, Opportunities, and Threats.")
 
         # --- Display Results ---
         tab1, tab2, tab3 = st.tabs(["Pros & Cons", "Comparison Table", "SWOT Analysis"])
         
         with tab1:
-            st.markdown(res_list.choices[0].message.content)
+            st.markdown(res_list.text)
         
         with tab2:
-            st.markdown(res_table.choices[0].message.content)
+            st.markdown(res_table.text)
             
         with tab3:
-            st.markdown(res_swot.choices[0].message.content)
+            st.markdown(res_swot.text)
 
         st.success("Analysis complete! Which way are you leaning?")
 else:
